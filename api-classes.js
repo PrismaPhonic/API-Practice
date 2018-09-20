@@ -89,6 +89,8 @@ class StoryList {
     this.url = `${BASE_URL}stories/`;
   }
 
+  // Get a list of the 10 most recent stories and store them in an instance
+  // of Storylist
   static getStories(cb) {
     const storyURL = `${BASE_URL}stories/`;
     $.get(storyURL, { skip: 0, limit: 10 }, function (res) {
@@ -97,6 +99,8 @@ class StoryList {
     });
   }
 
+  // Add a story.  Takes a user object (instance of class User), an object
+  // of data about the story and a callback function
   addStory(user, dataObj, cb) {
     const storyURL = this.url;
     $.ajax({
@@ -111,6 +115,8 @@ class StoryList {
     });
   }
 
+  // Takes user object, story id and callback - issues a delete request
+  // NOTE: CAN ONLY DELETE STORIES USER HAS MADE THEMSELVES
   removeStory(user, id, cb) {
     const storyURLFromId = `${this.url}${id}/`;
     $.ajax({
@@ -130,6 +136,8 @@ class StoryList {
 // using the `user` and `storyList` variables from above:
 
 /*
+//TESTS BELOW, COPY PASTE BECAUSE ASYNCHRONOUS
+
 var storyList;
 StoryList.getStories(function (res) {
   storyList = res;
