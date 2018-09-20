@@ -47,32 +47,18 @@ class User {
       headers: { "Authorization": `Bearer ${authToken}`, },
     });
   }
+
+  /* 
+   *  Build out addFavorite here
+   *  Inputs: Story ID and callback function
+   *          - NOTE: NEEDS AUTH TOKEN
+   *  Results: data.favorites -> this is an array of story objects
+   *  
+   *  Should invoke .retrieveDetails and update users .favorites
+   * 
+  */
+
 }
-
-//instantiate a new user - test
-let lump30;
-User.create('lump30', 'lumpy', 'lump30', function (u) {
-  lump30 = u;
-  console.log(JSON.stringify(lump30));
-
-  // take these out later
-  lump30.login(function (res) {
-    console.log('login responded with:', res);
-    lump30.loginToken = res.data.token;
-  });
-});
-
-/*
-// test of user login
-lump30.login(function (res) {
-  console.log('login responded with:', res);
-  lump30.loginToken = res.data.token;
-});
-
-lump30.retrieveDetails(function (response) {
-  console.log(response);
-});
-*/
 
 class Story {
   constructor(author, title, url, username, storyId) {
@@ -133,11 +119,40 @@ class StoryList {
 }
 
 
+let lump30;
+User.create('lump30', 'lumpy', 'lump30', function (u) {
+  lump30 = u;
+  console.log(JSON.stringify(lump30));
+
+  // take these out later
+  lump30.login(function (res) {
+    console.log('login responded with:', res);
+    lump30.loginToken = res.data.token;
+  });
+});
 
 // using the `user` and `storyList` variables from above:
 
 /*
 //TESTS BELOW, COPY PASTE BECAUSE ASYNCHRONOUS
+
+
+//instantiate a new user - test
+
+
+/*
+// test of user login
+lump30.login(function (res) {
+  console.log('login responded with:', res);
+  lump30.loginToken = res.data.token;
+});
+
+lump30.retrieveDetails(function (response) {
+  console.log(response);
+});
+*/
+
+/*
 
 var storyList;
 StoryList.getStories(function (res) {
@@ -170,10 +185,10 @@ ourStories.addStory(lump30, newStoryData, function (response) {
 var firstStory = storyList.stories[0];
 
 storyList.removeStory(user,
-                      firstStory.storyId,
-                      function (response) {
-  console.log(response) // this will contain an empty list of stories
-});
+  firstStory.storyId,
+  function (response) {
+    console.log(response) // this will contain an empty list of stories
+  });
 
 */
 
