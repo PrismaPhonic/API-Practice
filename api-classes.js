@@ -37,6 +37,7 @@ class User {
       url: userURL,
       type: 'GET',
       success: (res) => {
+        // !! Q: SHOULD WE MOVE THESE TO THE CALLBACK? !!
         this.favorites = res.data.favorites;
         this.ownStories = res.data.stories;
         console.log(this);
@@ -49,26 +50,26 @@ class User {
 }
 
 //instantiate a new user - test
-let lump29;
-User.create('lump29', 'lumpy', 'lump29', function (u) {
-  lump29 = u;
-  console.log(JSON.stringify(lump29));
+let lump30;
+User.create('lump30', 'lumpy', 'lump30', function (u) {
+  lump30 = u;
+  console.log(JSON.stringify(lump30));
 
   // take these out later
-  lump29.login(function (res) {
+  lump30.login(function (res) {
     console.log('login responded with:', res);
-    lump29.loginToken = res.data.token;
+    lump30.loginToken = res.data.token;
   });
 });
 
 /*
 // test of user login
-lump29.login(function (res) {
+lump30.login(function (res) {
   console.log('login responded with:', res);
-  lump29.loginToken = res.data.token;
+  lump30.loginToken = res.data.token;
 });
 
-lump29.retrieveDetails(function (response) {
+lump30.retrieveDetails(function (response) {
   console.log(response);
 });
 */
@@ -93,7 +94,7 @@ class StoryList {
   // of Storylist
   static getStories(cb) {
     const storyURL = `${BASE_URL}stories/`;
-    $.get(storyURL, { skip: 0, limit: 10 }, function (res) {
+    $.get(storyURL, { skip: 0, limit: 10 }, (res) => {
       let s = new StoryList(res.data);
       cb(s);
     });
@@ -107,7 +108,7 @@ class StoryList {
       url: storyURL,
       type: 'POST',
       data: { data: dataObj },
-      success: function (res) {
+      success: (res) => {
         cb(res);
       },
       dataType: 'json',
@@ -122,7 +123,7 @@ class StoryList {
     $.ajax({
       url: storyURLFromId,
       type: 'DELETE',
-      success: function (res) {
+      success: (res) => {
         cb(res);
       },
       headers: { "Authorization": `Bearer ${user.loginToken}`, },
@@ -154,16 +155,16 @@ var newStoryData = {
   title: "How Waterslides Killed my Family",
   author: "Smokey The Bear",
   url: "https://www.WaterSlidesAreEvil.com",
-  username: "lump29"
+  username: "lump30"
 };
 
 
 
-ourStories.addStory(lump29, newStoryData, function (response) {
+ourStories.addStory(lump30, newStoryData, function (response) {
   // should be array of all stories including new story
   console.log(response);
   // should be array of all stories written by user
-  console.log(lump29.stories);
+  console.log(lump30.stories);
 })
 
 var firstStory = storyList.stories[0];
