@@ -149,7 +149,7 @@ User.create('lump34', 'lumpy', 'lump34', function (u) {
 // using the `user` and `storyList` variables from above:
 
 /*
-//TESTS BELOW, COPY PASTE BECAUSE ASYNCHRONOUS
+//TESTS BELOW 
 
 //instantiate a new user - test
 
@@ -168,18 +168,13 @@ lump34.retrieveDetails(function (response) {
 
 /*
 
+//Get a list of 10 stories
 var storyList;
 StoryList.getStories(function (res) {
   storyList = res;
 });
 
-let ourStories;
-StoryList.getStories(function (s) {
-  ourStories = s;
-  console.log('yay! we got some stories');
-  console.log(ourStories);
-})
-
+//Here's an example story we can add to the server
 var newStoryData = {
   title: "How Waterslides Killed my Family",
   author: "Smokey The Bear",
@@ -187,8 +182,7 @@ var newStoryData = {
   username: "lump34"
 };
 
-
-
+//This adds our story we made above
 storyList.addStory(lump34, newStoryData, function (response) {
   // should be array of all stories including new story
   console.log(response);
@@ -196,14 +190,16 @@ storyList.addStory(lump34, newStoryData, function (response) {
   console.log(lump34.stories);
 })
 
-var firstStory = storyList.stories[0];
+//Block to test removal of a story
+var firstStory = lump34.ownStories[0];
 
-storyList.removeStory(user,
-  firstStory.storyId,
-  function (response) {
-    console.log(response) // this will contain an empty list of stories
-  });
+storyList.removeStory(user, firstStory.storyId, function (response) {
+  console.log(response) // this will contain an empty list of stories
+});
 
+// Test adding a favorite story 
+// Note: we want to pop off of storyList.stories this time because we 
+// want to make sure we can add other users stories to our favorites
 var firstStory = storyList.stories[0];
 lump34.addFavorite(firstStory.storyId, function (response) {
   console.log(response) // this should include the added favorite!
