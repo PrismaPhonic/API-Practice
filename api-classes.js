@@ -57,6 +57,21 @@ class User {
    *  Should invoke .retrieveDetails and update users .favorites
    * 
   */
+  addFavorite(storyId, cb) {
+    const addFavoriteURL = `${BASE_URL}/users/${this.username}/favorites/${storyId}`;
+    // SHOULD WE BE SETTING authToken LIKE THIS
+    // to avoid using this.loginToken inside of the ajax call?
+    const authToken = this.loginToken;
+    $.ajax({
+      url: addFavoriteURL,
+      method: 'POST',
+      headers: { "Authorization": `Bearer ${this.loginToken}`, },
+      success: (res) => {
+        console.log("Request successful.");
+        cb(res);
+      }
+    })
+  }
 
 }
 
@@ -119,15 +134,15 @@ class StoryList {
 }
 
 
-let lump30;
-User.create('lump30', 'lumpy', 'lump30', function (u) {
-  lump30 = u;
-  console.log(JSON.stringify(lump30));
+let lump34;
+User.create('lump34', 'lumpy', 'lump34', function (u) {
+  lump34 = u;
+  console.log(JSON.stringify(lump34));
 
   // take these out later
-  lump30.login(function (res) {
+  lump34.login(function (res) {
     console.log('login responded with:', res);
-    lump30.loginToken = res.data.token;
+    lump34.loginToken = res.data.token;
   });
 });
 
@@ -136,18 +151,17 @@ User.create('lump30', 'lumpy', 'lump30', function (u) {
 /*
 //TESTS BELOW, COPY PASTE BECAUSE ASYNCHRONOUS
 
-
 //instantiate a new user - test
 
 
 /*
 // test of user login
-lump30.login(function (res) {
+lump34.login(function (res) {
   console.log('login responded with:', res);
-  lump30.loginToken = res.data.token;
+  lump34.loginToken = res.data.token;
 });
 
-lump30.retrieveDetails(function (response) {
+lump34.retrieveDetails(function (response) {
   console.log(response);
 });
 */
@@ -170,16 +184,16 @@ var newStoryData = {
   title: "How Waterslides Killed my Family",
   author: "Smokey The Bear",
   url: "https://www.WaterSlidesAreEvil.com",
-  username: "lump30"
+  username: "lump34"
 };
 
 
 
-ourStories.addStory(lump30, newStoryData, function (response) {
+ourStories.addStory(lump34, newStoryData, function (response) {
   // should be array of all stories including new story
   console.log(response);
   // should be array of all stories written by user
-  console.log(lump30.stories);
+  console.log(lump34.stories);
 })
 
 var firstStory = storyList.stories[0];
@@ -189,6 +203,11 @@ storyList.removeStory(user,
   function (response) {
     console.log(response) // this will contain an empty list of stories
   });
+
+var firstStory = storyList.stories[0];
+lump34.addFavorite(firstStory.storyId, function (response) {
+  console.log(response) // this should include the added favorite!
+});
 
 */
 
