@@ -10,6 +10,8 @@ class User {
     this.ownStories = [];
   }
 
+  //This will be used to create the user serverside, and then use the data
+  //sent back from the server to create an instance of that user
   static create(username, password, name, cb) {
     const createUserURL = BASE_URL + 'users';
     $.post(createUserURL, { data: { name, username, password, } }, function (res) {
@@ -18,11 +20,12 @@ class User {
     });
   }
 
+  //will log the user in, and passes the user document from the server to a 
+  //callback function
   login(func) {
     const authURL = BASE_URL + 'auth';
     let username = this.username;
     let password = this.password;
-    console.log("this method exists!");
     $.post(authURL, { data: { username, password, } }, func);
   }
 
@@ -46,26 +49,26 @@ class User {
 }
 
 //instantiate a new user - test
-let lump27;
-User.create('lump27', 'lumpy', 'lump27', function (u) {
-  lump27 = u;
-  console.log(JSON.stringify(lump27));
+let lump29;
+User.create('lump29', 'lumpy', 'lump29', function (u) {
+  lump29 = u;
+  console.log(JSON.stringify(lump29));
 
-  // take these later
-  lump27.login(function (res) {
+  // take these out later
+  lump29.login(function (res) {
     console.log('login responded with:', res);
-    lump27.loginToken = res.data.token;
+    lump29.loginToken = res.data.token;
   });
 });
 
 /*
-// test of user login - hoisted causes error? BEWARE!!
-lump27.login(function (res) {
+// test of user login
+lump29.login(function (res) {
   console.log('login responded with:', res);
-  lump27.loginToken = res.data.token;
+  lump29.loginToken = res.data.token;
 });
 
-lump27.retrieveDetails(function (response) {
+lump29.retrieveDetails(function (response) {
   console.log(response);
 });
 */
@@ -83,11 +86,11 @@ class Story {
 class StoryList {
   constructor(stories) {
     this.stories = stories;
-    this.url = `${BASE_URL}stories`;
+    this.url = `${BASE_URL}stories/`;
   }
 
   static getStories(cb) {
-    const storyURL = `${BASE_URL}stories`;
+    const storyURL = `${BASE_URL}stories/`;
     $.get(storyURL, { skip: 0, limit: 10 }, function (res) {
       let s = new StoryList(res.data);
       cb(s);
@@ -107,16 +110,31 @@ class StoryList {
       headers: { "Authorization": `Bearer ${user.loginToken}`, },
     });
   }
+
+  removeStory(user, id, cb) {
+    const storyURLFromId = `${this.url}${id}/`;
+    $.ajax({
+      url: storyURLFromId,
+      type: 'DELETE',
+      success: function (res) {
+        cb(res);
+      },
+      headers: { "Authorization": `Bearer ${user.loginToken}`, },
+    });
+  }
+
 }
 
-// var storyList;
-// StoryList.getStories(function (res) {
-//   storyList = res;
-// });
+
 
 // using the `user` and `storyList` variables from above:
 
 /*
+var storyList;
+StoryList.getStories(function (res) {
+  storyList = res;
+});
+
 let ourStories;
 StoryList.getStories(function (s) {
   ourStories = s;
@@ -125,20 +143,28 @@ StoryList.getStories(function (s) {
 })
 
 var newStoryData = {
-  title: "The Most Amazing Story",
-  author: "God",
-  url: "https://www.LifeIsMeaningless.com",
-  username: "lump27"
+  title: "How Waterslides Killed my Family",
+  author: "Smokey The Bear",
+  url: "https://www.WaterSlidesAreEvil.com",
+  username: "lump29"
 };
 
 
 
-ourStories.addStory(lump27, newStoryData, function (response) {
+ourStories.addStory(lump29, newStoryData, function (response) {
   // should be array of all stories including new story
   console.log(response);
   // should be array of all stories written by user
-  console.log(lump27.stories);
+  console.log(lump29.stories);
 })
+
+var firstStory = storyList.stories[0];
+
+storyList.removeStory(user,
+                      firstStory.storyId,
+                      function (response) {
+  console.log(response) // this will contain an empty list of stories
+});
 
 */
 
