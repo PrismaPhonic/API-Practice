@@ -57,17 +57,17 @@ class User {
    *  Should invoke .retrieveDetails and update users .favorites
    * 
   */
+
   addFavorite(storyId, cb) {
     const addFavoriteURL = `${BASE_URL}/users/${this.username}/favorites/${storyId}`;
-    // SHOULD WE BE SETTING authToken LIKE THIS
-    // to avoid using this.loginToken inside of the ajax call?
-    const authToken = this.loginToken;
     $.ajax({
       url: addFavoriteURL,
       method: 'POST',
       headers: { "Authorization": `Bearer ${this.loginToken}`, },
       success: (res) => {
         console.log("Request successful.");
+        // should invoke .retrieveDetails and update users .favorites
+        // this.retrieveDetails(); ??
         cb(res);
       }
     })
@@ -189,7 +189,7 @@ var newStoryData = {
 
 
 
-ourStories.addStory(lump34, newStoryData, function (response) {
+storyList.addStory(lump34, newStoryData, function (response) {
   // should be array of all stories including new story
   console.log(response);
   // should be array of all stories written by user
