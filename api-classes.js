@@ -36,6 +36,7 @@ class StoryList {
         const { author, title, url, username, storyId } = response.data;
         const newStory = new Story(author, title, url, username, storyId);
         this.stories.push(newStory);
+        console.log('user:', user);
         user.retrieveDetails(() => cb(this));
       }
     });
@@ -103,7 +104,6 @@ class User {
         newUser.loginToken = token;
         newUser.retrieveDetails((res) =>
           console.log('Update user instance with server response'));
-        console.log('user instance:', newUser instanceof User);
         cb(newUser);
         return;
       }
@@ -120,7 +120,8 @@ class User {
         this.name = response.data.name;
         this.favorites = response.data.favorites;
         this.ownStories = response.data.stories;
-        return cb(this);
+        cb(this);
+        return;
       }
     });
   }

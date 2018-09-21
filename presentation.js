@@ -1,13 +1,21 @@
 $(document).ready(function () {
-  let userInstance;
+  let userInstance; // User instance
+  var storyList; // StoryList instance
 
   // if user object is in local storage,
   // then change to logged in display state
   if (localStorage.getItem('currentUser')) {
     setDisplayToLoggedIn();
-    userInstance = JSON.parse(localStorage.getItem('currentUser'));
+    let userData = JSON.parse(localStorage.getItem('currentUser'));
+    // User already logged in, so let's build a proper user instance
+    userInstance = new User(userData.username, userData.password, userData.name);
+    userInstance.loginToken = userData.loginToken;
+    userInstance.retrieveDetails((res) => console.log(`Retrieve Details: ${JSON.stringify(res)}`));
   }
-  console.log('userInstance: ', userInstance);
+
+  /* 
+   * UTILITY & DISPLAY FUNCTION DECLARATIONS
+  */
 
   function setDisplayToLoggedIn() {
     // hide login and sign-up navbar buttons 
@@ -55,22 +63,49 @@ $(document).ready(function () {
     `);
   }
 
-  // TODO: WRITE FUNC THAT SUBMITS STORY TO SERVER
   function submitStory() {
+    // get title, and url from submit form
+    let title = $(".form-control").eq(0).val();
+    let url = new URL($(".form-control").eq(1).val());
+    let hostname = url.hostname;
+
+    let storyData = {
+      title,
+      url: url.href,
+      author: userInstance.name,
+      username: userInstance.username,
+    }
+
+    // send create request to server
+    storyList.addStory(userInstance, storyData, function (res) {
+      clearForms();
+      $("#submit-form").slideUp(650);
+      // Refresh the news feed
+      displayStories();
+    });
+    //Form entry is first injected into ordered list
+
+
     // submit story to server
+
     // in callback from server, issue refresh of news feed
   }
 
+  // clears list items from news feed section
+  function clearNewsFeed() {
+    $('#news ol').empty();
+  }
+
   // TODO: WRITE A FUNC THAT ADDS A FAVORITE TO USERS
-  // FAVORITE LIST (AJAX REQUEST) WHEN A STAR IS CLICKED
+  // ADD TO FAVORITE LIST WHEN A STAR IS CLICKED
   function addFavorite() {
 
   }
 
   function displayStories() {
-    var storyList;
     StoryList.getStories(function (response) {
       storyList = response;
+      clearNewsFeed();
       for (let story of storyList.stories) {
         appendStory(story);
       }
@@ -97,6 +132,11 @@ $(document).ready(function () {
     });
   }
 
+
+
+  /* 
+   * START OF FUNCTION CALLS
+  */
 
   displayStories();
 
@@ -198,23 +238,9 @@ $(document).ready(function () {
 
   // APPEND STORY TO DOM ON CLICK (FORM)
   // submit button click handler
-  // TODO: CHANGE THIS TO SUBMIT A STORY TO THE SERVER
-  // AND THEN REFRESH THE STORY-LIST
+  // TODO: CHANGE THIS TO RUN SUBMIT STORY FUNCTION
   $("#submit-form button").on("click", function () {
-    //Form entry is first injected into ordered list
-    let title = $(".form-control").eq(0).val();
-    console.log($(".form-control").eq(1).val());
-    let url = new URL($(".form-control").eq(1).val());
-    let hostname = url.hostname;
-    $("article ol").append(`
-      <li class="my-1">
-        <i class="far fa-star"></i>
-        ${title}
-        <a href="#"><small>(${hostname})</small></a>
-      </li>
-    `);
-    clearForms();
-    $("#submit-form").slideUp(650);
+    submitStory();
   });
 
   // FILTER BY HOSTNAME ON CLICK
