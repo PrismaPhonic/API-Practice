@@ -1,7 +1,39 @@
 $(document).ready(function () {
+  let userInstance;
   //hide stars until logged in
 
-  let userInstance;
+  // if user object is in local storage,
+  // then change to logged in display state
+  if (localStorage.getItem('currentUser')) {
+    setDisplayToLoggedIn();
+    userInstance = JSON.parse(localStorage.getItem('currentUser'));
+  }
+  console.log('userInstance: ', userInstance);
+
+  function setDisplayToLoggedIn() {
+    $('#show-login').hide();
+    $('#show-signup').hide();
+
+    // show logout button...  but show() defaults to inline display
+    // set display to inline-block
+    $('#logout').show().css('display', 'inline-block');
+
+    //show submit and favorites button after login
+    $('#show-favorites').show().css('display', 'inline-block');
+    $('#show-submit').show().css('display', 'inline-block');
+
+    // enable favorite stars
+    enableStars();
+  }
+
+  function setDisplayToLoggedOut() {
+    $('#show-login').show();
+    $('#show-signup').show();
+    $('#show-favorites').hide();
+    $('#show-submit').hide();
+    $('#logout').hide();
+  }
+
   function appendStory(story) {
     let title = story.title;
     let url = new URL(story.url);
@@ -69,14 +101,12 @@ $(document).ready(function () {
   // LOGOUT USER ON CLICK (NAVBAR)
   $('#logout').on('click', function () {
     console.log('Logged out');
-    // empty user instance
+    // empty user instance and remove from local storage
     userInstance = {};
+    localStorage.removeItem('currentUser');
     // revert DOM to show login button and
     // hide favorites and submit button
-    $('#logout').hide();
-    $('#show-login').show();
-    $('#show-favorites').hide();
-    $('#show-submit').hide();
+    setDisplayToLoggedOut();
   })
 
   // SHOW SUBMIT NEW STORY ON CLICK (NAVBAR)
@@ -103,20 +133,11 @@ $(document).ready(function () {
 
     User.login(username, password, function (res) {
       userInstance = res;
+      localStorage.setItem("currentUser", JSON.stringify(userInstance));
       console.log('Running login callback');
       $("#login-form").slideUp(650);
-      $('#show-login').hide();
 
-      // show logout button...  but show() defaults to inline display
-      // set display to inline-block
-      $('#logout').show().css('display', 'inline-block');
-
-      //show submit and favorites button after login
-      $('#show-favorites').show().css('display', 'inline-block');
-      $('#show-submit').show().css('display', 'inline-block');
-
-      // enable favorite stars
-      enableStars();
+      setDisplayToLoggedIn();
 
       clearForms();
     });
