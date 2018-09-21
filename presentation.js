@@ -39,7 +39,7 @@ $(document).ready(function () {
     let url = new URL(story.url);
     let urlSmall = url.hostname.replace('www.', '');
     $("article ol").append(`
-      <li>
+      <li class="my-1">
         <i class="far fa-star"></i>
         ${title}
         <a href="#"><small>(${urlSmall})</small></a>
@@ -177,7 +177,7 @@ $(document).ready(function () {
     let url = new URL($(".form-control").eq(1).val());
     let urlSmall = url.hostname.match(/www\.(.*\..*)\/?/)[1];
     $("article ol").append(`
-      <li>
+      <li class="my-1">
         <i class="far fa-star"></i>
         ${title}
         <a href="#"><small>(${urlSmall})</small></a>
