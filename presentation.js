@@ -5,12 +5,13 @@ $(document).ready(function () {
   // if user object is in local storage,
   // then change to logged in display state
   if (localStorage.getItem('currentUser')) {
-    setDisplayToLoggedIn();
     let userData = JSON.parse(localStorage.getItem('currentUser'));
     // User already logged in, so let's build a proper user instance
     userInstance = new User(userData.username, userData.password, userData.name);
     userInstance.loginToken = userData.loginToken;
-    userInstance.retrieveDetails((res) => { });
+    userInstance.retrieveDetails((res) => {
+      setDisplayToLoggedIn();
+    });
   }
 
   /* 
@@ -26,6 +27,15 @@ $(document).ready(function () {
     // set display to inline-block
     $('#logout').show().css('display', 'inline-block');
 
+    // Populate username next to "logout" - when clicked will show profile section
+    // modify dom first so username div has username for inner text
+    $('#show-profile').text(userInstance.username);
+    $('#show-profile').show().css('display', 'inline-block')
+
+    // Populate profile fields
+    $('#profile-name').text(userInstance.name);
+    $('#profile-username').text(userInstance.username);
+
     //show submit and favorites button after login
     $('#show-favorites').show().css('display', 'inline-block');
     $('#show-submit').show().css('display', 'inline-block');
@@ -33,13 +43,17 @@ $(document).ready(function () {
     // enable favorite stars
     enableStars();
 
-    // TODO: CALL A FUNCTION THAT CHANGES STARS TO SOLID IF
-    // THEY ARE IN USERS FAVORITES LIST
-
+    // toggle all favorited stories' stars according to local favorites list
+    toggleFavoritedStars(userInstance.favorites);
 
     // TODO: ADD USERNAME TO LEFT OF 'LOGOUT'
     // WHEN CLICKED, GOES TO PROFILE PAGE
 
+  }
+
+  function toggleProfile() {
+    $('#news').toggle();
+    $('#profile').toggle();
   }
 
   function setDisplayToLoggedOut() {
@@ -48,14 +62,16 @@ $(document).ready(function () {
     $('#show-favorites').hide();
     $('#show-submit').hide();
     $('#logout').hide();
+    $('#show-profile').hide();
   }
 
   function appendStory(story) {
     let title = story.title;
     let url = new URL(story.url);
     let urlSmall = url.hostname.replace('www.', '');
+    let storyId = story.storyId;
     $("article ol").append(`
-      <li class="my-1">
+      <li class="my-1" id="${storyId}">
         <i class="far fa-star"></i>
         ${title}
         <a href="#"><small>(${urlSmall})</small></a>
@@ -113,22 +129,44 @@ $(document).ready(function () {
   }
 
   // Toggle stars in dom based on users favorites list
-  function toggleStars() {
-    console.log(userInstance);
-    //console.log(userInstance.favorites);
-    // for (let favorite of userInstance.favorites) {
-    //   console.log('StoryId: ', favorite.storyId)
-    // }
+  // parameter expects an array of favorite POJOs
+  function toggleFavoritedStars(favorites) {
+    // grab id's of all the favorites for this user
+    for (let favorite of favorites) {
+      let storyId = favorite.storyId;
+      toggleStar(storyId);
+    }
   }
 
-  // Click on the star to change it to solid
+  function toggleStar(id) {
+    $(`#${id} i`).toggleClass('far fas');
+  }
+
+  function isEmpty(sel) {
+    return ($(sel).attr('class') === 'far fa-star');
+  }
+
+
+  // Set click handler to all stars
   function enableStars() {
+    // set a click handler on each star
     $("#news").on("click", ".far, .fas", function () {
-      $(this).toggleClass("far fas");
+      let retrieveAndToggle = () => {
+        userInstance.retrieveDetails(() => {
+          toggleStar(storyId);
+        });
+      }
+
+      let storyId = $(this).parent().attr('id');
+
+      // add favorite just clicked to server
+      // when server responds, retreive details from server
+      // when server responds to retreiveDetails, modify DOM
+      if (isEmpty(this)) userInstance.addFavorite(storyId, retrieveAndToggle);
+      else userInstance.removeFavorite(storyId, retrieveAndToggle);
     });
   }
 
-  toggleStars();
 
   // TODO: FUNCTION THAT CHECKS USERS FAVORITES
   // AND TURNS THOSE STARS TO SOLID
@@ -277,5 +315,9 @@ $(document).ready(function () {
    *    IN MY PROFILE
   */
 
+  // TOGGLE PROFILIE SECTION ON CLICK
+  $('#show-profile').on('click', function () {
+    toggleProfile();
+  })
 
 });
