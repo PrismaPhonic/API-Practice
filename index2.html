@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Hacker Snooze</title>
+  <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.3.1/css/all.css" integrity="sha384-mzrmE5qonljUremFsqc01SB46JvROS7bZs3IO2EmfFsd15uHvIt+Y8vEf7N7fWAU" crossorigin="anonymous">
+  <style>
+    .btn-primary {
+      background-color: rgb(233, 84, 31);
+      outline-color: rgb(233, 84, 31);
+      border-color: rgb(233, 84, 31);
+    }
+    .btn.btn-primary:hover {
+      background-color: rgb(209, 75, 27);
+      outline-color: rgb(209, 75, 27);
+      border-color: rgb(209, 75, 27);
+    }
+    .btn.btn-primary:active {
+      background-color: rgb(209, 75, 27);
+      outline-color: rgb(209, 75, 27);
+      border-color: rgb(209, 75, 27);
+    }
+    .form-control-warning:focus {
+      box-shadow: 0 0 0 0.2rem rgba(233, 84, 31, 0.25);
+      border-style: none;
+    }
+  </style>
+</head>
+<body>
+  <nav class="navbar navbar-expand-lg navbar-light" style="background-color: #e9541f;">
+    <a href="#" class="navbar-brand"><b>Hack or Snooze</b></a>
+    <ul class="navbar-nav">
+      <li class="nav-item">
+        <a class="nav-link" id="submit" href="#">submit</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" id="favorites" href="#">favorites</a>
+      </li>
+    </ul>
+  </nav>
+  <section class="container-fluid">
+  <form class="my-4">
+    <div class="form-group row">
+      <label for="title" class="col-1 col-form-label">title</label>
+      <div class="col-3">
+          <input type="text" class="form-control form-control-warning" id="title">
+      </div>
+    </div>
+    <div class="form-group row">
+      <label for="url" class="col-1 col-form-label">url</label>
+      <div class="col-3">
+          <input type="url" class="form-control form-control-warning" id="url">
+      </div>
+    </div>
+    <button type="submit" class="btn btn-primary">submit</button>
+  </form>
+  <article class="mt-3" id="news">
+    <ol>
+    </ol>
+  </article>
+  </section>
+<script src="https://code.jquery.com/jquery-3.1.1.js"></script>
+<script>
+  $(document).ready(function(){
+    $("form").hide();
+    //Show and hide the submit form when appropriate
+    $("#submit").on("click", function() {
+      $("form").slideDown(400);
+    });
+    $(".btn.btn-primary").on("click", function() {
+      //Form entry is first injected into ordered list
+      let title = $(".form-control").eq(0).val();
+      let url = new URL($(".form-control").eq(1).val());
+      let urlSmall = url.hostname.match(/www\.(.*\..*)\/?/)[1];
+      $("article ol").append(`
+        <li>
+          <i class="far fa-star"></i>
+          ${title}
+          <a href="#"><small>(${urlSmall})</small></a>
+        </li>
+      `);
+      $("form").slideUp(650);
+    });
+    // Click on the star to change it to solid
+    $("#news").on("click", ".far, .fas", function() {
+      $(this).toggleClass("far fas");
+    });
+
+    //favorites button filters down to only solid stars
+    $("#favorites").on("click", function() {
+      $(".far").parent().toggle();
+    });
+
+    //if hostname is clicked, filter to only news from those sites
+    $("#news").on("click", "small", function(evt) {
+      let currentHost = $(evt.target).text();
+      $("#news ol li")
+        .filter(function(i, e) {
+          return ($(e)
+            .children("a")
+            .children("small")
+            .text() !== currentHost);
+        }).toggle();
+    })
+  });
+</script>
+<script src="api-classes.js"></script>
+</body>
+
+</html>

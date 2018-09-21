@@ -1,7 +1,66 @@
-const BASE_URL = 'https://hack-or-snooze.herokuapp.com/';
+const BASE_URL = "https://hack-or-snooze.herokuapp.com";
+
+class StoryList {
+  constructor(stories) {
+    this.stories = stories;
+  }
+
+  static getStories(cb) {
+    $.getJSON(`${BASE_URL}/stories`, { skip: 0, limit: 10 }, function (response) {
+      const stories = response.data.map(function (val) {
+        const { username, title, author, url, storyId } = val;
+        return new Story(author, title, url, username, storyId);
+      });
+      const storyList = new StoryList(stories);
+      return cb(storyList);
+    });
+  }
+
+  addStory(user, data, cb) {
+    $.ajax({
+      method: "POST",
+      url: `${BASE_URL}/stories`,
+      data: {
+        data: {
+          username: user.username,
+          title: data.title,
+          author: data.author,
+          url: data.url
+        }
+      },
+      headers: {
+        authorization: `Bearer: ${user.loginToken}`
+      },
+      success: response => {
+        // modify user stories as well as list of stories
+        const { author, title, url, username, storyId } = response.data;
+        const newStory = new Story(author, title, url, username, storyId);
+        this.stories.push(newStory);
+        user.retrieveDetails(() => cb(this));
+      }
+    });
+  }
+
+  removeStory(user, storyId, cb) {
+    $.ajax({
+      url: `${BASE_URL}/stories/${storyId}`,
+      method: "DELETE",
+      headers: {
+        authorization: `Bearer: ${user.loginToken}`
+      },
+      success: () => {
+        const storyIndex = this.stories.findIndex(
+          story => story.storyId === storyId
+        );
+        this.stories.splice(storyIndex, 1);
+        user.retrieveDetails(() => cb(this));
+      }
+    });
+  }
+}
 
 class User {
-  constructor(username, password, name) {
+  constructor(username, password, name = username) {
     this.username = username;
     this.password = password;
     this.name = name;
@@ -10,69 +69,116 @@ class User {
     this.ownStories = [];
   }
 
-  //This will be used to create the user serverside, and then use the data
-  //sent back from the server to create an instance of that user
   static create(username, password, name, cb) {
-    const createUserURL = BASE_URL + 'users';
-    $.post(createUserURL, { data: { name, username, password, } }, function (res) {
-      let u = new User(res.data.username, password, res.data.name);
-      cb(u);
-    });
-  }
-
-  //will log the user in, and passes the user document from the server to a 
-  //callback function
-  login(func) {
-    const authURL = BASE_URL + 'auth';
-    let username = this.username;
-    let password = this.password;
-    $.post(authURL, { data: { username, password, } }, func);
-  }
-
-  //Let's retrieve the users data and update the instance
-  retrieveDetails(cb) {
-    const userURL = `${BASE_URL}users/${this.username}`;
-    const authToken = this.loginToken;
-    $.ajax({
-      url: userURL,
-      type: 'GET',
-      success: (res) => {
-        // !! Q: SHOULD WE MOVE THESE TO THE CALLBACK? !!
-        this.favorites = res.data.favorites;
-        this.ownStories = res.data.stories;
-        console.log(this);
-        cb(res);
+    $.post(
+      `${BASE_URL}/users`,
+      {
+        data: {
+          username,
+          password,
+          name
+        }
       },
-      dataType: 'json',
-      headers: { "Authorization": `Bearer ${authToken}`, },
-    });
+      function (response) {
+        const { username, name } = response.data;
+        const newUser = new User(username, password, name);
+        cb(newUser);
+        return;
+      }
+    );
   }
 
-  /* 
-   *  Build out addFavorite here
-   *  Inputs: Story ID and callback function
-   *          - NOTE: NEEDS AUTH TOKEN
-   *  Results: data.favorites -> this is an array of story objects
-   *  
-   *  Should invoke .retrieveDetails and update users .favorites
-   * 
-  */
+  static login(username, password, cb) {
+    $.post(
+      `${BASE_URL}/auth`,
+      {
+        data: {
+          username,
+          password,
+        }
+      },
+      (response) => {
+        const token = response.data.token;
+        const newUser = new User(username, password);
+        newUser.loginToken = token;
+        newUser.retrieveDetails((res) =>
+          console.log('Update user instance with server response'));
+        console.log('user instance:', newUser instanceof User);
+        cb(newUser);
+        return;
+      }
+    );
+  }
+
+  retrieveDetails(cb) {
+    $.ajax({
+      url: `${BASE_URL}/users/${this.username}`,
+      headers: {
+        authorization: `Bearer: ${this.loginToken}`
+      },
+      success: response => {
+        this.name = response.data.name;
+        this.favorites = response.data.favorites;
+        this.ownStories = response.data.stories;
+        return cb(this);
+      }
+    });
+  }
 
   addFavorite(storyId, cb) {
-    const addFavoriteURL = `${BASE_URL}/users/${this.username}/favorites/${storyId}`;
-    $.ajax({
-      url: addFavoriteURL,
-      method: 'POST',
-      headers: { "Authorization": `Bearer ${this.loginToken}`, },
-      success: (res) => {
-        console.log("Request successful.");
-        // should invoke .retrieveDetails and update users .favorites
-        // this.retrieveDetails(); ??
-        cb(res);
-      }
-    })
+    return this._toggleFavorite(storyId, true, cb);
   }
 
+  removeFavorite(storyId, cb) {
+    return this._toggleFavorite(storyId, false, cb);
+  }
+
+  _toggleFavorite(storyId, isAdding, cb) {
+    const HTTPVerb = isAdding ? "POST" : "DELETE";
+    $.ajax({
+      url: `${BASE_URL}/users/${this.username}/favorites/${storyId}`,
+      method: HTTPVerb,
+      headers: {
+        authorization: `Bearer: ${this.loginToken}`
+      },
+      success: response => {
+        if (isAdding) {
+          this.favorites.push(response.data);
+        } else {
+          const favoriteIndex = this.favorites.findIndex(
+            val => val.storyId === storyId
+          );
+          this.favorites.splice(favoriteIndex, 1);
+        }
+        this.retrieveDetails(() => cb(this));
+      }
+    });
+  }
+
+  update(data, cb) {
+    $.ajax({
+      url: `${BASE_URL}/users/${this.username}`,
+      method: "PATCH",
+      headers: {
+        authorization: `Bearer: ${this.loginToken}`
+      },
+      data: {
+        data
+      },
+      success: cb
+    });
+  }
+
+  remove(cb) {
+    $.ajax({
+      url: `${BASE_URL}/users/${this.username}`,
+      method: "DELETE",
+      headers: {
+        authorization: `Bearer: ${this.loginToken}`
+      },
+      success: cb
+    });
+  }
 }
 
 class Story {
@@ -83,127 +189,24 @@ class Story {
     this.username = username;
     this.storyId = storyId;
   }
-}
 
-class StoryList {
-  constructor(stories) {
-    this.stories = stories;
-    this.url = `${BASE_URL}stories/`;
-  }
-
-  // Get a list of the 10 most recent stories and store them in an instance
-  // of Storylist
-  static getStories(cb) {
-    const storyURL = `${BASE_URL}stories/`;
-    $.get(storyURL, { skip: 0, limit: 10 }, (res) => {
-      let s = new StoryList(res.data);
-      cb(s);
-    });
-  }
-
-  // Add a story.  Takes a user object (instance of class User), an object
-  // of data about the story and a callback function
-  addStory(user, dataObj, cb) {
-    const storyURL = this.url;
+  update(user, data, cb) {
     $.ajax({
-      url: storyURL,
-      type: 'POST',
-      data: { data: dataObj },
-      success: (res) => {
-        cb(res);
+      url: `${BASE_URL}/stories/${this.storyId}`,
+      method: "PATCH",
+      headers: {
+        authorization: `Bearer: ${user.loginToken}`
       },
-      dataType: 'json',
-      headers: { "Authorization": `Bearer ${user.loginToken}`, },
+      data: {
+        data
+      },
+      success: response => {
+        const { author, title, url } = response.data;
+        this.author = author;
+        this.title = title;
+        this.url = url;
+        return cb(this);
+      }
     });
   }
-
-  // Takes user object, story id and callback - issues a delete request
-  // NOTE: CAN ONLY DELETE STORIES USER HAS MADE THEMSELVES
-  removeStory(user, id, cb) {
-    const storyURLFromId = `${this.url}${id}/`;
-    $.ajax({
-      url: storyURLFromId,
-      type: 'DELETE',
-      success: (res) => {
-        cb(res);
-      },
-      headers: { "Authorization": `Bearer ${user.loginToken}`, },
-    });
-  }
-
 }
-
-
-let lump34;
-User.create('lump34', 'lumpy', 'lump34', function (u) {
-  lump34 = u;
-  console.log(JSON.stringify(lump34));
-
-  // take these out later
-  lump34.login(function (res) {
-    console.log('login responded with:', res);
-    lump34.loginToken = res.data.token;
-  });
-});
-
-// using the `user` and `storyList` variables from above:
-
-/*
-//TESTS BELOW 
-
-//instantiate a new user - test
-
-
-/*
-// test of user login
-lump34.login(function (res) {
-  console.log('login responded with:', res);
-  lump34.loginToken = res.data.token;
-});
-
-lump34.retrieveDetails(function (response) {
-  console.log(response);
-});
-*/
-
-/*
-
-//Get a list of 10 stories
-var storyList;
-StoryList.getStories(function (res) {
-  storyList = res;
-});
-
-//Here's an example story we can add to the server
-var newStoryData = {
-  title: "How Waterslides Killed my Family",
-  author: "Smokey The Bear",
-  url: "https://www.WaterSlidesAreEvil.com",
-  username: "lump34"
-};
-
-//This adds our story we made above
-storyList.addStory(lump34, newStoryData, function (response) {
-  // should be array of all stories including new story
-  console.log(response);
-  // should be array of all stories written by user
-  console.log(lump34.stories);
-})
-
-//Block to test removal of a story
-var firstStory = lump34.ownStories[0];
-
-storyList.removeStory(user, firstStory.storyId, function (response) {
-  console.log(response) // this will contain an empty list of stories
-});
-
-// Test adding a favorite story 
-// Note: we want to pop off of storyList.stories this time because we 
-// want to make sure we can add other users stories to our favorites
-var firstStory = storyList.stories[0];
-lump34.addFavorite(firstStory.storyId, function (response) {
-  console.log(response) // this should include the added favorite!
-});
-
-*/
-
