@@ -10,7 +10,7 @@ $(document).ready(function () {
     // User already logged in, so let's build a proper user instance
     userInstance = new User(userData.username, userData.password, userData.name);
     userInstance.loginToken = userData.loginToken;
-    userInstance.retrieveDetails((res) => console.log(`Retrieve Details: ${JSON.stringify(res)}`));
+    userInstance.retrieveDetails((res) => { });
   }
 
   /* 
@@ -96,7 +96,7 @@ $(document).ready(function () {
     $('#news ol').empty();
   }
 
-  // TODO: WRITE A FUNC THAT ADDS A FAVORITE TO USERS
+  // TODO: WRITE A FUNC THAT ADDS A FAVORITE TO SERVER
   // ADD TO FAVORITE LIST WHEN A STAR IS CLICKED
   function addFavorite() {
 
@@ -112,12 +112,23 @@ $(document).ready(function () {
     });
   }
 
+  // Toggle stars in dom based on users favorites list
+  function toggleStars() {
+    console.log(userInstance);
+    //console.log(userInstance.favorites);
+    // for (let favorite of userInstance.favorites) {
+    //   console.log('StoryId: ', favorite.storyId)
+    // }
+  }
+
   // Click on the star to change it to solid
   function enableStars() {
     $("#news").on("click", ".far, .fas", function () {
       $(this).toggleClass("far fas");
     });
   }
+
+  toggleStars();
 
   // TODO: FUNCTION THAT CHECKS USERS FAVORITES
   // AND TURNS THOSE STARS TO SOLID
