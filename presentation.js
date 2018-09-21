@@ -1,6 +1,5 @@
 $(document).ready(function () {
   let userInstance;
-  //hide stars until logged in
 
   // if user object is in local storage,
   // then change to logged in display state
@@ -11,6 +10,7 @@ $(document).ready(function () {
   console.log('userInstance: ', userInstance);
 
   function setDisplayToLoggedIn() {
+    // hide login and sign-up navbar buttons 
     $('#show-login').hide();
     $('#show-signup').hide();
 
@@ -24,6 +24,14 @@ $(document).ready(function () {
 
     // enable favorite stars
     enableStars();
+
+    // TODO: CALL A FUNCTION THAT CHANGES STARS TO SOLID IF
+    // THEY ARE IN USERS FAVORITES LIST
+
+
+    // TODO: ADD USERNAME TO LEFT OF 'LOGOUT'
+    // WHEN CLICKED, GOES TO PROFILE PAGE
+
   }
 
   function setDisplayToLoggedOut() {
@@ -47,6 +55,18 @@ $(document).ready(function () {
     `);
   }
 
+  // TODO: WRITE FUNC THAT SUBMITS STORY TO SERVER
+  function submitStory() {
+    // submit story to server
+    // in callback from server, issue refresh of news feed
+  }
+
+  // TODO: WRITE A FUNC THAT ADDS A FAVORITE TO USERS
+  // FAVORITE LIST (AJAX REQUEST) WHEN A STAR IS CLICKED
+  function addFavorite() {
+
+  }
+
   function displayStories() {
     var storyList;
     StoryList.getStories(function (response) {
@@ -62,6 +82,12 @@ $(document).ready(function () {
     $("#news").on("click", ".far, .fas", function () {
       $(this).toggleClass("far fas");
     });
+  }
+
+  // TODO: FUNCTION THAT CHECKS USERS FAVORITES
+  // AND TURNS THOSE STARS TO SOLID
+  function updateFavorites() {
+
   }
 
   function clearForms() {
@@ -116,7 +142,8 @@ $(document).ready(function () {
   });
 
   // SHOW FAVORITES ON CLICK (NAVBAR)
-  //favorites button filters down to only solid stars
+  // favorites button filters down to only solid stars
+
   $("#show-favorites").on("click", function () {
     $(".far").parent().toggle();
   });
@@ -171,16 +198,19 @@ $(document).ready(function () {
 
   // APPEND STORY TO DOM ON CLICK (FORM)
   // submit button click handler
+  // TODO: CHANGE THIS TO SUBMIT A STORY TO THE SERVER
+  // AND THEN REFRESH THE STORY-LIST
   $("#submit-form button").on("click", function () {
     //Form entry is first injected into ordered list
     let title = $(".form-control").eq(0).val();
+    console.log($(".form-control").eq(1).val());
     let url = new URL($(".form-control").eq(1).val());
-    let urlSmall = url.hostname.match(/www\.(.*\..*)\/?/)[1];
+    let hostname = url.hostname;
     $("article ol").append(`
       <li class="my-1">
         <i class="far fa-star"></i>
         ${title}
-        <a href="#"><small>(${urlSmall})</small></a>
+        <a href="#"><small>(${hostname})</small></a>
       </li>
     `);
     clearForms();
@@ -199,4 +229,16 @@ $(document).ready(function () {
           .text() !== currentHost);
       }).toggle();
   })
+
+  /*
+   * TODO: USER PROFILE SECTION
+   * 1. FAVORITE STORIES SAVE TO PRIFLE
+   * 2. FROM PROFILE, CAN SEE USERNAME & NAME
+   * 3. CAN VIEW STORIES USER HAS POSTED
+   * 4. CAN REMOVE STORIES I'VE POSTED FROM LIST IN PROFILE
+   * 5. CAN REMOVE INDIVIDUAL FAVORITES FROM LIST OF FAVORITES
+   *    IN MY PROFILE
+  */
+
+
 });
