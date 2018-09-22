@@ -65,12 +65,14 @@ $(document).ready(function () {
     $('#show-profile').hide();
   }
 
-  function appendStory(story) {
+  // appendStory takes story object and selector of where to append 
+  // stories to
+  function appendStory(story, sel) {
     let title = story.title;
     let url = new URL(story.url);
     let urlSmall = url.hostname.replace('www.', '');
     let storyId = story.storyId;
-    $("article ol").append(`
+    $(sel).append(`
       <li class="my-1" id="${storyId}">
         <i class="far fa-star"></i>
         ${title}
@@ -123,7 +125,7 @@ $(document).ready(function () {
       storyList = response;
       clearNewsFeed();
       for (let story of storyList.stories) {
-        appendStory(story);
+        appendStory(story, '#news ol');
       }
     });
   }
@@ -320,4 +322,11 @@ $(document).ready(function () {
     toggleProfile();
   })
 
+  // WHEN SUBMISSIONS CLICKED, POPULATE SUBMISSIONS SECTION BELOW
+  $('#submission-link').on('click', function () {
+    $('#user-submissions').toggle();
+    for (let story of userInstance.ownStories) {
+      appendStory(story, '#user-submissions ol');
+    }
+  })
 });
